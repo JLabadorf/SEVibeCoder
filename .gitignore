@@ -1,0 +1,6 @@
+#ignore the chroma_db directory, and the documentation directory as well the .venv directory
+chroma_db/
+documentation/
+.venv/
+#ignore the .env file
+.env
