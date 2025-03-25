@@ -60,7 +60,7 @@ To run KYLEWARE locally, follow these steps:
         Alternatively, you can set it in your system's environment variables.
 
 4.  **Prepare FAISS Index and Metadata:**
-    You need to generate the FAISS index (`faiss_index.bin`) and metadata (`metadata.json`) files. Run the indexing script (e.g., `indexing_script.py`) provided in the repository. This script will process the MDK-SE Wiki data and create these files. **Ensure these files are in the same directory as `app.py` and `helpers.py`.**
+    You need to generate the FAISS index (`faiss_index.bin`) and metadata (`metadata.json`) files. Run the data_setup notebook provided in the repository. This script will process the MDK-SE Wiki data and create these files. **Ensure these files are in the same directory as `app.py` and `helpers.py`.**
 
 5.  **Run the Streamlit App:**
     ```bash
@@ -74,7 +74,7 @@ To run KYLEWARE locally, follow these steps:
 
 *   **[Malware-dev](https://github.com/malware-dev/) MDK-SE Wiki:**  For providing the valuable MDK-SE Wiki content and licensing it under the MIT License, which makes this project possible.
 *   **Perkins and Matt:** For the Space Engineers gameplay and inspiration to build this tool.
-*   **Kyle:** For the early morning wake-up calls that sparked the idea for KYLEWARE.
+*   **Kyle:** For the early morning wake-up call that sparked the idea for KYLEWARE.
 *   **You:** For using KYLEWARE and for your support!
 
 ## Source Code 📂

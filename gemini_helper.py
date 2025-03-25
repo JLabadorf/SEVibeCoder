@@ -49,6 +49,7 @@ def generate_answer_gemini(query, context_chunks, gemini_model_name="gemini-2.0-
         top_k=64,
         max_output_tokens=65536,
         response_mime_type="text/plain",
+        system_instruction=open("system_instructions.md", "r").read(),  # Load system instruction from file
     )
 
     generated_text = ""
