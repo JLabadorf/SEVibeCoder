@@ -1,5 +1,5 @@
 import streamlit as st
-from helpers import load_embedding_model, load_chroma_collection, retrieve_relevant_chunks
+from helpers import load_embedding_model, load_faiss_index, retrieve_relevant_chunks # Updated imports
 from gemini_helper import generate_answer_gemini  # Assuming gemini_helper.py is in the same directory
 import os  # For potential environment variable access
 
@@ -42,22 +42,22 @@ st.sidebar.markdown(
 
     **How it works:**
 
-    1.  **Data Ingestion:** The app uses the MDK-SE Wiki as its knowledge base. The data is stored in a ChromaDB vector database.
+    1.  **Data Ingestion:** The app uses the MDK-SE Wiki as its knowledge base. The data is stored in a FAISS index.
     2.  **Embedding Generation:** The app uses the Sentence Transformers library to generate embeddings for the text data.
-    3.  **Retrieval-Augmented Generation (RAG):** When a user asks a question, the app retrieves relevant chunks of text from the ChromaDB based on the user's query.
+    3.  **Retrieval-Augmented Generation (RAG):** When a user asks a question, the app retrieves relevant chunks of text from the FAISS index based on the user's query.
     4.  **Answer Generation:** The app uses the Gemini API to generate an answer based on the retrieved context chunks.
     5.  **User Interface:** The app is built using Streamlit, providing an interactive web interface for users to ask questions and receive answers.
 
     **Libraries Used:**
 
     *   Streamlit: for the web app framework and deploying.
-    *   ChromaDB: for the vector database.
+    *   FAISS: for the vector index.
     *   Sentence Transformers: for embedding generation.
     *   Gemini API: for the generative model.
 
     **Source Code:**
 
-    [Link to your GitHub repository (if you make it public)] - *Replace with your repo link if you want to share the code*
+    [Project Repo](https://github.com/JLabadorf/SEVibeCoder/)
 
     **Thanks and Acknowledgements:**
     *   [Malware-dev](https://github.com/malware-dev/)MDK-SE/wiki - for the MDK-SE Wiki content and for licensing the data under MIT.
@@ -85,19 +85,19 @@ st.markdown("""
         <p>Made with ❤️ by <a href="jamesthedatascientist.com" target="_blank">James the Data Scientist</a></p>
     </div>
 """, unsafe_allow_html=True)
-# --- Initialize embedding model and ChromaDB collection ONCE when app starts (using st.cache_resource) ---
+# --- Initialize embedding model and FAISS index/metadata ONCE when app starts (using st.cache_resource) ---
 @st.cache_resource
 def load_resources():
     embedding_model = load_embedding_model()
-    collection = load_chroma_collection()
-    if not collection:
-        st.error("Failed to load ChromaDB collection. Please check if the database exists at 'chroma_db' (or the specified persist directory).")
-        return None, None  # Return None for both if loading fails
-    return embedding_model, collection
+    faiss_index, faiss_metadata = load_faiss_index() # Load FAISS index and metadata
+    if not faiss_index or not faiss_metadata: # Check if both loaded
+        st.error("Failed to load FAISS index or metadata. Please check if 'faiss_index.bin' and 'metadata.json' exist in the app's directory.")
+        return None, None, None  # Return None for all if loading fails
+    return embedding_model, faiss_index, faiss_metadata
 
-embedding_model, collection = load_resources()
+embedding_model, faiss_index, faiss_metadata = load_resources() # Get all three loaded resources
 
-if not collection: # Stop if collection failed to load in load_resources
+if not faiss_index or not faiss_metadata: # Stop if FAISS resources failed to load in load_resources
     st.stop()
 
 # --- Gemini API Key Check ---
@@ -110,12 +110,12 @@ user_query = st.text_input("Ask your question here:", placeholder="e.g., How do 
 
 # --- RAG Process on Query Submission ---
 if user_query:
-    if not embedding_model or not collection: # Double check in case of race conditions or issues with st.cache_resource
-        st.error("Embedding model or ChromaDB collection not loaded correctly. Please refresh the app.")
+    if not embedding_model or not faiss_index or not faiss_metadata: # Double check in case of race conditions or issues with st.cache_resource
+        st.error("Embedding model or FAISS index/metadata not loaded correctly. Please refresh the app.")
         st.stop()
 
     with st.spinner("Retrieving relevant information from the MDK-SE Wiki..."):
-        retrieved_context = retrieve_relevant_chunks(user_query, embedding_model, collection)
+        retrieved_context = retrieve_relevant_chunks(user_query, embedding_model, faiss_index, faiss_metadata) # Pass faiss_index and faiss_metadata
 
     if retrieved_context:
         with st.spinner("Generating answer using Gemini..."):
